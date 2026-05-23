@@ -1,0 +1,46 @@
+name: Build Kernel 2
+
+on:
+  workflow_dispatch:
+    inputs:
+      BRANCH_GIT_URL:
+        description: 'BRANCH_GIT_URL to clone kernel source'
+        required: true
+        default: 'BPF_UNPRIV https://github.com/SN-Abdullah-Al-Noman/SM-A225X'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1️⃣ Checkout code
+        uses: actions/checkout@v2
+
+      - name: 2️⃣ Installing packages
+        run: |
+          sudo apt update -y && sudo apt install -y apt-utils nano bison ca-certificates curl flex gcc git libc6-dev libssl-dev openssl ssh wget zip zstd sudo make clang gcc-arm-linux-gnueabi software-properties-common build-essential libarchive-tools gcc-aarch64-linux-gnu libffi-dev libncurses5-dev zlib1g zlib1g-dev libreadline-dev libbz2-dev libsqlite3-dev pigz python3 cpio lld p7zip-full xz-utils tar libelf-dev libudev-dev libpci-dev libiberty-dev pkg-config llvm clang-tools fakeroot ccache libcap-dev libunwind-dev gawk bc u-boot-tools device-tree-compiler liblzma-dev python3-pip -y
+          
+      - name: 3️⃣ Cloning kernel source
+        run: |
+          sudo git clone -b ${{ github.event.inputs.BRANCH_GIT_URL }} kernel_source
+
+      - name: 4️⃣ Cloning toolchain
+        run: |
+          # sudo git clone https://github.com/SN-Abdullah-Al-Noman/toolchain
+          
+      - name: 5️⃣ Starting kernel compile
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+        run: |
+          cd kernel_source
+          sudo git clone https://github.com/SN-Abdullah-Al-Noman/toolchain
+          sudo touch logs.txt && sudo chmod a+w logs.txt
+          sudo bash build_kernel.sh |& tee logs.txt
+          sudo curl -F chat_id=2081111916 -F document=@logs.txt -F caption="logs.txt" https://api.telegram.org/bot${TG_BOT_TOKEN}/sendDocument
+
+      - name: 6️⃣ Uploading kernel in telegram
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+        run: |
+          cd kernel_source/arch/arm64/boot
+          sudo curl -F chat_id=2081111916 -F document=@Image -F caption="${{ github.event.inputs.BRANCH_GIT_URL }}" https://api.telegram.org/bot${TG_BOT_TOKEN}/sendDocument
