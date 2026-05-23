@@ -13,12 +13,12 @@ jobs:
 
     steps:
       - name: Build Kernel
-        uses: dabao1955/kernel_build_action@main
+        uses: redmax19/kernel_build_action@main
         with:
-          kernel-url: https://github.com/AcmeUI-Devices/android_kernel_xiaomi_cas
+          kernel-url: https://github.com/redmax19/Kernel_g31
           kernel-dir: msm-4.19
-          kernel-branch: taffy
-          config: cas_defconfig
+          kernel-branch: g31
+          config: cofud_defconfig
           arch: arm64
           aosp-gcc: true
           aosp-clang: true
